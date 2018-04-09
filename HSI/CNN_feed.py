@@ -179,7 +179,7 @@ def run_training():
                         labels_placeholder,
                         Training_data)
                 print('测试集检测结果:')
-                        images_placeholder,
+                        
                 do_eval(sess,
                         eval_correct,
                         images_placeholder,
