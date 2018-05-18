@@ -14,13 +14,15 @@ import matplotlib.pyplot as plt
 '''
 载入数据
 '''
-DATA_PATH = os.path.join(os.getcwd(),"Data5")
-input_mat = scipy.io.loadmat(os.path.join(DATA_PATH, 'DATA_pca_5.mat'))['HSI_pca']
-target_mat = scipy.io.loadmat(os.path.join(DATA_PATH, 'DATA_pca_5.mat'))['GT_pca']
+DATA_name='DATA_DSM.mat'
+DATA_PATH = os.path.join(os.getcwd(),"Data")
+input_mat = scipy.io.loadmat(os.path.join(DATA_PATH, DATA_name))['DSM_300']
+input_mat=input_mat[:,:,np.newaxis]
+target_mat = scipy.io.loadmat(os.path.join(DATA_PATH, DATA_name))['GT_300']
 # input_mat = input_mat[:,:,0:200] #只取前200个波段
 HEIGHT = input_mat.shape[0]  #图像的高度
 WIDTH = input_mat.shape[1]   #图像的宽度
-BAND = input_mat.shape[2]    #图像的维度
+BAND = 1    #图像的维度
 PATCH_SIZE = parameter.patch_size
 TRAIN_PATCH,TRAIN_LABELS,TEST_PATCH,TEST_LABELS = [],[],[],[]
 CLASSES = []
@@ -30,7 +32,7 @@ TEST_FRAC = parameter.TEST_FRAC     #测试数据的比例
 print("patch为",PATCH_SIZE)
 # plt.imshow(target_mat)
 # plt.show()
-gt=target_mat[21:279,21:279]
+gt=target_mat[23:276,23:276]
 un=np.unique(gt)
 print(un)
 # plt.imshow(gt)
@@ -117,7 +119,7 @@ TRAIN_PATCH = TRAIN_PATCH.reshape((-1,BAND,PATCH_SIZE,PATCH_SIZE))
 
 TRAIN_LABELS = np.array([])
 for l in range(OUTPUT_CLASSES):
-    TRAIN_LABELS = np.append(TRAIN_LABELS, np.full(COUNT, l, dtype=int))  #生成COUNT个l
+    TRAIN_LABELS = np.append(TRAIN_LABELS, np.full(COUNT, l, dtype=int))
 
 '''
 分组保存训练数据patch,每组一共2*COUNT个patch

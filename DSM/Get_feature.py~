@@ -1,7 +1,7 @@
-# -*- coding: utf-8 -*- 
+# -*- coding: utf-8 -*-
 from __future__ import absolute_import
 from __future__ import division
-from __future__ import print_function 
+from __future__ import print_function
 import numpy as np
 import tensorflow as tf
 import spectral
@@ -19,10 +19,15 @@ import pickle as pkl
 Load data
 '''
 
-DATA_PATH = os.path.join(os.getcwd(),"Data5")
-input_image = scipy.io.loadmat(os.path.join(DATA_PATH, 'DATA_pca_5'))['HSI_pca']
-output_image = scipy.io.loadmat(os.path.join(DATA_PATH, 'DATA_pca_5'))['GT_pca']
+DATA_PATH = os.path.join(os.getcwd(),"Data")
+FEATURE_PATH = os.path.join(os.getcwd(),"Feature")
+# input_image1 = scipy.io.loadmat(os.path.join(DATA_PATH, 'DATA_DSM'))
+input_image = scipy.io.loadmat(os.path.join(DATA_PATH, 'DATA_DSM'))['DSM_300']
+output_image = scipy.io.loadmat(os.path.join(DATA_PATH, 'DATA_DSM'))['GT_300']
 
+# input_image = np.rot90(input_image)
+# output_image = np.rot90(output_image)
+input_image=input_image[:,:,np.newaxis]
 # input_image = np.rot90(input_image)
 # output_image = np.rot90(output_image)
 height = output_image.shape[0]
@@ -30,7 +35,7 @@ width = output_image.shape[1]
 PATCH_SIZE = parameter.patch_size
 batch_size = parameter.batch_size
 num_examples = parameter.num_examples
-
+conv0=parameter.conv0
 conv1 = parameter.conv1
 conv2 = parameter.conv2
 fc1 = parameter.fc1
@@ -107,7 +112,7 @@ def decoder():
 
         images_placeholder, labels_placeholder = placeholder_inputs(1)
 
-        logits = CNN.inference(images_placeholder,conv1,conv2,fc1,fc2)
+        logits = CNN.inference(images_placeholder,conv1,conv2,conv0,fc1,fc2)
 
         eval_correct = CNN.evaluation(logits, labels_placeholder)
         sm = tf.nn.softmax(logits)
@@ -130,8 +135,19 @@ def decoder():
                     continue
                 else:
                     image_patch = Patch(input_image, i, j)
+
+                    # 获取pooling层特征
+                    feature = sess.graph.get_operation_by_name("h_pool2_flat").outputs[0]
+
+                    file_name = 'DSM_' + str(PATCH_SIZE) + '_'+str(i)+'_' + str(j) + '.mat'
+                    DSM_feature = {}
+                    scipy.io.savemat(os.path.join(FEATURE_PATH, file_name), DSM_feature)
+
                     # print image_patch
                     prediction = sess.run(sm, feed_dict={images_placeholder: image_patch})
+
+
+
                     # print prediction
                     temp1 = np.argmax(prediction) + 1
                     # print temp1
@@ -141,29 +157,4 @@ def decoder():
     return outputs, predicted_results
 
 predicted_image,predicted_results = decoder()
-file_to_save = open("Predictions.pkl", "wb")
-pkl.dump(predicted_results, file_to_save,-1)
-file_to_save.close()
-ksc_color =np.array([
-     [255,255,255],
-     [184,40,99],
-     [74,77,145],
-     [35,102,193],
-     [238,110,105],
-     [117,249,76],
-     [114,251,253],
-     [126,196,59],
-     [234,65,247],
-     [141,79,77],
-     [183,40,99],
-     [0,39,245],
-     [90,196,111],
-        ])
-ground_truth = spectral.imshow(classes = output_image,figsize =(5,5),colors=ksc_color)
-plt.savefig('Gt.png')
-predict_image = spectral.imshow(classes = predicted_image.astype(int),figsize =(5,5),colors=ksc_color)
 
-plt.savefig('Map.png')
-scipy.io.savemat('GT_result.mat',{'gt':output_image})
-scipy.io.savemat('MAP_result.mat',{'map':predicted_image.astype(int)})
-print('Finish')

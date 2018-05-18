@@ -30,7 +30,7 @@ def inference(images, conv1_channels, conv2_channels, fc1_units, fc2_units):
 
     # Conv 1
     with tf.name_scope('conv_1') as scope:
-        weights = tf.get_variable('weights', shape=[3, 3, BANDS, conv1_channels],
+        weights = tf.get_variable('weights', shape=[5, 5, BANDS, conv1_channels],
                                   initializer=tf.contrib.layers.xavier_initializer_conv2d())
         biases = tf.get_variable('biases', shape=[conv1_channels], initializer=tf.constant_initializer(0.05))
 

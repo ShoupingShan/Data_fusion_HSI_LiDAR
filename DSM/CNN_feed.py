@@ -16,9 +16,10 @@ import Spatial_dataset as input_data
 
 flags = tf.app.flags
 FLAGS = flags.FLAGS
-flags.DEFINE_float('learning_rate', 0.1, 'Initial learning rate.')
-flags.DEFINE_integer('max_steps', 10001, 'Number of steps to run trainer.')
-flags.DEFINE_integer('conv1', 500, 'Number of filters in convolutional layer 1.')
+flags.DEFINE_float('learning_rate', 0.005, 'Initial learning rate.')
+flags.DEFINE_integer('max_steps', 20000, 'Number of steps to run trainer.')
+flags.DEFINE_integer('conv1', 600, 'Number of filters in convolutional layer 1.')
+flags.DEFINE_integer('conv0', 200, 'Number of filters in convolutional layer 0.')
 flags.DEFINE_integer('conv2', 100, 'Number of filters in convolutional layer 2.')
 flags.DEFINE_integer('hidden1', 200, 'Number of units in hidden layer 1.')
 flags.DEFINE_integer('hidden2', 84, 'Number of units in hidden layer 2.')
@@ -26,10 +27,11 @@ flags.DEFINE_integer('batch_size', 20, 'Batch size.  '
                      'Must divide evenly into the dataset sizes.')
 # flags.DEFINE_string('train_dir', '1.mat', 'Directory to put the training data.')
 
-learning_rate = 0.1
+learning_rate = 0.005
 num_epochs = 20
-max_steps = 100001
+max_steps = 20000
 IMAGE_SIZE = parameter.patch_size
+conv0 = parameter.conv0
 conv1 = parameter.conv1
 conv2 = parameter.conv2
 fc1 = parameter.fc1,
@@ -38,7 +40,7 @@ batch_size = parameter.batch_size
 TRAIN_FILES = parameter.TRAIN_FILES
 TEST_FILES = parameter.TEST_FILES
 
-DATA_PATH = os.path.join(os.getcwd(),"Data5")
+DATA_PATH = os.path.join(os.getcwd(),"Data")
 
 def placeholder_inputs(batch_size):
 
@@ -109,7 +111,7 @@ def run_training():
         images_placeholder, labels_placeholder = placeholder_inputs(FLAGS.batch_size)
 
         # Build a Graph that computes predictions from the inference model.
-        logits = CNN.inference(images_placeholder,FLAGS.conv1,FLAGS.conv2,FLAGS.hidden1,FLAGS.hidden2)
+        logits = CNN.inference(images_placeholder,FLAGS.conv1,FLAGS.conv2,FLAGS.conv0,FLAGS.hidden1,FLAGS.hidden2)
         # Add to the Graph the Ops for loss calculation.
         loss = CNN.loss(logits, labels_placeholder)
 
@@ -158,8 +160,7 @@ def run_training():
                                      feed_dict=feed_dict)
 
 
-            if (step+1)%10000==0 and step<=90000:
-                FLAGS.learning_rate=FLAGS.learning_rate-0.0001
+
             # Write the summaries and print an overview fairly often.
             if step % 50 == 0:
                 duration = time.time() - start_time

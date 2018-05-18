@@ -15,7 +15,7 @@ IMAGE_PIXELS = IMAGE_SIZE * IMAGE_SIZE *BANDS
 KERNEL_SIZE = parameter.KERNEL_SIZE
 
 
-def inference(images, conv1_channels, conv2_channels, fc1_units, fc2_units):
+def inference(images, conv1_channels, conv2_channels,conv0_channels, fc1_units, fc2_units):
     """
     Args:
     images: Images placeholder, from inputs().
@@ -30,7 +30,7 @@ def inference(images, conv1_channels, conv2_channels, fc1_units, fc2_units):
 
     # Conv 1
     with tf.name_scope('conv_1') as scope:
-        weights = tf.get_variable('weights', shape=[3, 3, BANDS, conv1_channels],
+        weights = tf.get_variable('weights', shape=[5, 5, BANDS, conv1_channels],
                                   initializer=tf.contrib.layers.xavier_initializer_conv2d())
         biases = tf.get_variable('biases', shape=[conv1_channels], initializer=tf.constant_initializer(0.05))
 
@@ -44,13 +44,25 @@ def inference(images, conv1_channels, conv2_channels, fc1_units, fc2_units):
     # Maxpool 1
     h_pool1 = tf.nn.max_pool(h_conv1, ksize=[1, 2, 2, 1],
                              strides=[1, 2, 2, 1], padding='SAME', name='h_pool1')
+    # Conv0
+    with tf.variable_scope('h_conv0') as scope:
+        weights = tf.get_variable('weights', shape=[5, 5, conv1_channels, conv0_channels],
+                                  initializer=tf.contrib.layers.xavier_initializer_conv2d())
+        biases = tf.get_variable('biases', shape=[conv0_channels], initializer=tf.constant_initializer(0.05))
+        z = tf.nn.conv2d(h_pool1, weights, strides=[1, 1, 1, 1], padding='VALID')
+        Wx_plus_b0 = z + biases
+        Wx_plus_b0 = tf.nn.dropout(Wx_plus_b0, keep_prob=0.5)
+        h_conv0 = tf.nn.relu(Wx_plus_b0)
 
+    # Maxpool 0
+    h_pool0 = tf.nn.max_pool(h_conv0, ksize=[1, 2, 2, 1],
+                             strides=[1, 2, 2, 1], padding='SAME', name='h_pool2')
     # Conv2
     with tf.variable_scope('h_conv2') as scope:
-        weights = tf.get_variable('weights', shape=[5, 5, conv1_channels, conv2_channels],
+        weights = tf.get_variable('weights', shape=[5, 5, conv0_channels, conv2_channels],
                                   initializer=tf.contrib.layers.xavier_initializer_conv2d())
         biases = tf.get_variable('biases', shape=[conv2_channels], initializer=tf.constant_initializer(0.05))
-        z = tf.nn.conv2d(h_pool1, weights, strides=[1, 1, 1, 1], padding='VALID')
+        z = tf.nn.conv2d(h_pool0, weights, strides=[1, 1, 1, 1], padding='VALID')
         Wx_plus_b2 = z+biases
         Wx_plus_b2 =tf.nn.dropout(Wx_plus_b2,keep_prob=0.5)
         h_conv2 = tf.nn.relu(Wx_plus_b2)
@@ -65,7 +77,7 @@ def inference(images, conv1_channels, conv2_channels, fc1_units, fc2_units):
         math.ceil((math.ceil(float(IMAGE_SIZE - KERNEL_SIZE + 1) / 2) - KERNEL_SIZE + 1) / 2))
 
     # Reshape from 4D to 2D
-    h_pool2_flat = tf.reshape(h_pool2, [-1, (size_after_conv_and_pool_twice ** 2) * conv2_channels])
+    h_pool2_flat = tf.reshape(h_pool2, [-1, (size_after_conv_and_pool_twice ** 2) * conv2_channels],name='h_pool2_flat')
 
     # FC 1
     with tf.name_scope('h_FC1') as scope:
