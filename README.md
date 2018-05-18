@@ -1,5 +1,5 @@
 # Data_fusion_HSI_LiDAR
-** HSI and LiDAR image fusion based on Deep Learning **
+**HSI and LiDAR image fusion based on Deep Learning**
 
 ## Author
 [@Shoupingshan](https://github.com/ShoupingShan)
@@ -12,7 +12,7 @@
   5. python2/python3
 
 ## Architecture of Convolutional Neural Network used
-** input- [conv - relu - maxpool] x 2 - [affine - relu] x 2 - affine - softmax**
+**input- [conv - relu - maxpool] x 2 - [affine - relu] x 2 - affine - softmax**
 ![HSI_net](https://github.com/ShoupingShan/Data_fusion_HSI_LiDAR/blob/master/image/HSI_net.png?raw=true)
 ![LiDAR](https://github.com/ShoupingShan/Data_fusion_HSI_LiDAR/blob/master/image/LiDAr-DSM_net.png?raw=true)
 ## Files
